@@ -1,0 +1,1 @@
+/Users/tor/PycharmProjects/SeatingPlan/NA20c.dat;/Users/tor/PycharmProjects/SeatingPlan/NA20d.dat;/Users/tor/PycharmProjects/SeatingPlan/test.dat;/Users/tor/Library/CloudStorage/OneDrive-StockholmKommun/Python/SeatingPlan/NA21d.dat;
