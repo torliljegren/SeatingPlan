@@ -1,15 +1,22 @@
 # encoding: UTF-8
 
 from platform import system
-import time
+from pathlib import Path
+from tkinter.messagebox import showwarning
 
 OP_SYS = system().lower()
+HOME_FOLDER = ''
+try:
+    HOME_FOLDER = str(Path.home()) + '/'
+except RuntimeError as error:
+    showwarning(title='Filfel', message='Hemkatalogen kunde inte öppnas. Felmeddelande:\n' + error.__str__())
+
+PREV_FILES_PATH = HOME_FOLDER + 'tidigare.txt'
+
 
 # converts Excel style column letters to 1-indexed ints
 COLNUM = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'K', 12: 'L', 13: 'M',
           14: 'N', 15: 'O', 16: 'P', 17: 'Q', 18: 'R', 19: 'S', 20: 'T', 21: 'U', 22: 'V', 23: 'W', 24: 'X'}
-
-PREV_FILES_FILENAME = 'tidigare.txt'
 
 ACTIVE_COLOR: str = "#cdaa7d" # "burlywood3"
 ACTIVE_COLOR_HOOVER: str = 'burlywood2'

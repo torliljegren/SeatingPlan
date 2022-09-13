@@ -14,10 +14,11 @@ from tkinter.messagebox import askyesnocancel
 from threading import Thread
 
 import Constants
+from Constants import *
 from ManualPlaceWin import *
 from tktooltip import ToolTip
 
-if Constants.OP_SYS == 'linux':
+if OP_SYS == 'linux':
     from ttkthemes.themed_tk import ThemedTk
 
 from StudentSeat import *
@@ -35,7 +36,7 @@ class PlanWin(object):
         self.manwin: ManualPlaceWin = None
         self.first_edit_click = True
 
-        if Constants.OP_SYS == 'linux':
+        if OP_SYS == 'linux':
             self.root = ThemedTk()
         else:
             self.root = Tk()
@@ -147,8 +148,8 @@ class PlanWin(object):
         self.previouscombobox.grid(row=0, column=19, padx=(5, 25), sticky='e', pady=10)
         self.previouscombobox.bind('<<ComboboxSelected>>', self.combobox_event)
 
-        self.seatframe = ttk.Frame(self.notebook, width=Constants.FRAME_WIDTH, height=Constants.FRAME_HEIGHT)
-        self.nameframe = ttk.Frame(self.notebook, width=Constants.FRAME_WIDTH, height=Constants.FRAME_HEIGHT)
+        self.seatframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
+        self.nameframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
 
         self.seatframe.pack(fill='both', expand=True, side=LEFT)
         self.nameframe.pack(fill='both', expand=True, side=LEFT)
@@ -183,7 +184,7 @@ class PlanWin(object):
 
         self.setup_grid()
 
-        if Constants.OP_SYS == 'linux':
+        if OP_SYS == 'linux':
             s = ttk.Style()
             s.theme_use('plastik')
 
@@ -195,8 +196,8 @@ class PlanWin(object):
 
     # creates the buttons representing seats and grids them to self.buttonframe
     def setup_grid(self):
-        for y in range(0, Constants.TOTAL_SEATS_Y):
-            for x in range(0, Constants.TOTAL_SEATS_X):
+        for y in range(0, TOTAL_SEATS_Y):
+            for x in range(0, TOTAL_SEATS_X):
                 # s = Button(self.seatframe, text=str(x)+str(y))
                 s = StudentSeat(self.seatframe, x, y, self, self.editvar)#, name=str(x)+", "+str(y))
                 # s.callback = lambda: self.seat_callback(s)
@@ -278,7 +279,7 @@ class PlanWin(object):
             if filepath not in self.prev_files:
                 self.prev_files.append(filepath)
                 self.update_combobox(filepath)
-                with open(Constants.PREV_FILES_FILENAME, 'a', encoding='utf-8') as f:
+                with open(PREV_FILES_PATH, 'a', encoding='utf-8') as f:
                     f.write(filepath+";")
                 self.filepath = filepath
             self.write_data(filepath)
@@ -295,7 +296,7 @@ class PlanWin(object):
             if filepath not in self.prev_files:
                 self.prev_files.append(filepath)
                 self.update_combobox(filepath)
-                with open(Constants.PREV_FILES_FILENAME, 'a', encoding='utf-8') as f:
+                with open(PREV_FILES_PATH, 'a', encoding='utf-8') as f:
                     f.write(filepath+';')
             self.load_data(filepath)
             self.dirty = False
@@ -386,7 +387,7 @@ class PlanWin(object):
                 self.cmd_save(e=None, saveas=False)
 
         # write list of previous opened files to file
-        with open('tidigare.txt', mode='w', encoding='utf-8') as f:
+        with open(PREV_FILES_PATH, mode='w', encoding='utf-8') as f:
             if self.prev_files:
                 # print('Writing to tidigare.txt:', self.prev_files)
                 for filepath in self.prev_files:

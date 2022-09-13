@@ -2,18 +2,18 @@
 
 import PlanWin as pw
 from pathlib import Path
-from Constants import PREV_FILES_FILENAME
+from Constants import PREV_FILES_PATH
 
 # open and read a file of previous opened files
-checkfile = Path(PREV_FILES_FILENAME)
+checkfile = Path(PREV_FILES_PATH)
 if checkfile.is_file():
-    with open(PREV_FILES_FILENAME, 'r', encoding='utf-8') as f:
+    with open(PREV_FILES_PATH, 'r', encoding='utf-8') as f:
         prev = f.readline()
         prevslist: list[str] = []
         if prev:
             prevslist = prev.strip(";").split(";")
     window = pw.PlanWin(prevslist)
 else:
-    with open(PREV_FILES_FILENAME, 'w', encoding='utf-8') as f:
+    with open(PREV_FILES_PATH, 'w', encoding='utf-8') as f:
         f.write("")
     window = pw.PlanWin()
