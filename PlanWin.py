@@ -145,8 +145,13 @@ class PlanWin(object):
         ttk.Label(self.buttonframe, text='Sparade:').grid(row=0, column=18, padx=(10, 0), pady=10, sticky='e')
         self.combovar = tkinter.StringVar()
         self.previouscombobox = ttk.Combobox(self.buttonframe, textvariable=self.combovar, state='readonly')
-        self.previouscombobox.grid(row=0, column=19, padx=(5, 25), sticky='e', pady=10)
+        self.previouscombobox.grid(row=0, column=19, padx=(5, 0), sticky='e', pady=10)
         self.previouscombobox.bind('<<ComboboxSelected>>', self.combobox_event)
+
+        imunpin = PhotoImage(file='unpin.png')
+        self.unpin_button = ttk.Button(self.buttonframe, image=imunpin, command=self.remove_selected_from_combobox)
+        self.unpin_button.grid(row=0, column=20, padx=(2,10), pady=10)
+        ToolTip(self.unpin_button, 'Ta bort från listan', 1.5, follow=False)
 
         self.seatframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
         self.nameframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
@@ -650,6 +655,10 @@ class PlanWin(object):
             if filepath.split("/")[-1] == sel and sel and sel!="\n":
                 self.load_data(filepath)
                 self.root.title(filepath.split('/')[-1])
+
+    def remove_selected_from_combobox(self):
+        self.prev_files.remove(self.filepath)
+        self.update_combobox()
 
 
     def load_data(self, filepath: str):
