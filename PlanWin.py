@@ -242,6 +242,17 @@ class PlanWin(object):
         namelist_1 = [n.strip() for n in pyperclip.paste().split('\n') if '\n' not in n and n != '']
         print(namelist_1)
         namelist_2 = [n for n in namelist_1 if n != '']
+
+        # if platform is windows, sometimes åäö and accented chars get messed up. Try to encode then decode to resolve.
+        if OP_SYS == 'windows':
+            try:
+                print('Attempting to fix utf8 chars')
+                templist = [n.encode('utf-8').decode('utf-8') for n in namelist_2]
+                print('Success!')
+                namelist_2 = templist
+            except UnicodeEncodeError:
+                print('UTF-8 encoding error in string:', [s for s in namelist_2 if s not in namelist_2])
+
         # write the names to the textarea
         self.textarea.delete(1.0, tkinter.END)
         if not namelist_2:
