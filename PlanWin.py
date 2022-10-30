@@ -28,8 +28,8 @@ from xlsxwriter import *
 class PlanWin(object):
 
     def __init__(self, prev_files: list[str]=None):
+        self.editclicks = 0
         self.seats: list[StudentSeat] = []
-        self.editclickse = 0
         self.filepath = ""
         self.dirty = False
         self.run_thread = True
@@ -265,7 +265,7 @@ class PlanWin(object):
         self.dirty = True
         for seat in self.seats:
             seat.deactivate()
-            #seat.name_set('')
+            # seat.name_set('')
         if self.manwin:
             self.manwin.update_names(only_unplaced=True)
 
@@ -413,7 +413,6 @@ class PlanWin(object):
 
         # terminate thread then exit
         self.run_thread = False
-        #self.update_thread.join()
         self.root.destroy()
         sys.exit(0)
 
@@ -430,15 +429,22 @@ class PlanWin(object):
 
 
     def keypress(self, e):
+        # only push alpa chars to searchbox
         if not e.char.isalpha() or self.notebook.tab(self.notebook.select(), 'text') == 'Klasslista':#self.notebook.select()):
             return
 
-        if 'searchEntry' not in str(self.root.focus_get()):
-            self.search_on_enter(None)
-            self.search_var.set(e.char)
-            self.search_entry.icursor(tkinter.END)
-            self.cmd_search(None)
-            self.search_entry.focus_set()
+        # have to catch exception 'cause the save file dialog causes exceptions to be thrown when the key listener
+        # asks for what's in focus
+        try:
+        # set focus on the searchbox
+            if 'searchEntry' not in str(self.root.focus_get()):
+                self.search_on_enter(None)
+                self.search_var.set(e.char)
+                self.search_entry.icursor(tkinter.END)
+                self.cmd_search(None)
+                self.search_entry.focus_set()
+        except Exception:
+            pass
 
 
 
