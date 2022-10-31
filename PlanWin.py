@@ -227,9 +227,9 @@ class PlanWin(object):
     def periodic_stucount_update(self, window, upd, run):
         while run:
             time.sleep(0.5)
-            t1 = time.perf_counter_ns()
+            # t1 = time.perf_counter_ns()
             upd()
-            t2 = time.perf_counter_ns()
+            # t2 = time.perf_counter_ns()
             # print('%f ms'%(float((t2-t1)*10**(-6))))
 
     ########################
@@ -642,7 +642,7 @@ class PlanWin(object):
                 #                       row                    #col                    #name
                 taken_seats.append(str(seat.ypos) + "," + str(seat.xpos) + "," + seat.name_get() + ";")
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, 'w') as f:
             # write list of students, like so:
             # name1;name2;name3...
             f.write("STUDENT LIST\n")
