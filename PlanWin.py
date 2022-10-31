@@ -28,8 +28,8 @@ from xlsxwriter import *
 class PlanWin(object):
 
     def __init__(self, prev_files: list[str]=None):
+        self.editclicks = 0
         self.seats: list[StudentSeat] = []
-        self.editclickse = 0
         self.filepath = ""
         self.dirty = False
         self.run_thread = True
@@ -227,9 +227,9 @@ class PlanWin(object):
     def periodic_stucount_update(self, window, upd, run):
         while run:
             time.sleep(0.5)
-            t1 = time.perf_counter_ns()
+            # t1 = time.perf_counter_ns()
             upd()
-            t2 = time.perf_counter_ns()
+            # t2 = time.perf_counter_ns()
             # print('%f ms'%(float((t2-t1)*10**(-6))))
 
     ########################
@@ -265,7 +265,7 @@ class PlanWin(object):
         self.dirty = True
         for seat in self.seats:
             seat.deactivate()
-            #seat.name_set('')
+            # seat.name_set('')
         if self.manwin:
             self.manwin.update_names(only_unplaced=True)
 
@@ -413,7 +413,6 @@ class PlanWin(object):
 
         # terminate thread then exit
         self.run_thread = False
-        #self.update_thread.join()
         self.root.destroy()
         sys.exit(0)
 
@@ -430,15 +429,22 @@ class PlanWin(object):
 
 
     def keypress(self, e):
+        # only push alpa chars to searchbox
         if not e.char.isalpha() or self.notebook.tab(self.notebook.select(), 'text') == 'Klasslista':#self.notebook.select()):
             return
 
-        if 'searchEntry' not in str(self.root.focus_get()):
-            self.search_on_enter(None)
-            self.search_var.set(e.char)
-            self.search_entry.icursor(tkinter.END)
-            self.cmd_search(None)
-            self.search_entry.focus_set()
+        # have to catch exception 'cause the save file dialog causes exceptions to be thrown when the key listener
+        # asks for what's in focus
+        try:
+        # set focus on the searchbox
+            if 'searchEntry' not in str(self.root.focus_get()):
+                self.search_on_enter(None)
+                self.search_var.set(e.char)
+                self.search_entry.icursor(tkinter.END)
+                self.cmd_search(None)
+                self.search_entry.focus_set()
+        except Exception:
+            pass
 
 
 
@@ -636,7 +642,7 @@ class PlanWin(object):
                 #                       row                    #col                    #name
                 taken_seats.append(str(seat.ypos) + "," + str(seat.xpos) + "," + seat.name_get() + ";")
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, 'w') as f:
             # write list of students, like so:
             # name1;name2;name3...
             f.write("STUDENT LIST\n")
