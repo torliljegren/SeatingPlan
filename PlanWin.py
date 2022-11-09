@@ -240,8 +240,11 @@ class PlanWin(object):
     def cmd_paste(self, e):
         # prepare and clean up the list
         namelist_1 = [n.strip() for n in pyperclip.paste().split('\n') if '\n' not in n and n != '']
+        print('Namelist 1 len=',len(namelist_1), namelist_1)
         print(namelist_1)
         namelist_2 = [n for n in namelist_1 if n != '']
+        print('Namelist 2 len=', len(namelist_2), namelist_2)
+
 
         # if platform is windows, sometimes åäö and accented chars get messed up. Try to encode then decode to resolve.
         if OP_SYS == 'windows':
@@ -698,8 +701,10 @@ class PlanWin(object):
             acts = f.readline()
 
         # remove trailing ;
-        stus = stus[0:-1] if stus[-1]==";" else stus
-        acts = acts[0:-1] if acts[-1]==";" else acts
+        if len(stus) >= 2:
+            stus = stus[0:-1] if stus[-1]==";" else stus
+        if len(acts) >= 2:
+            acts = acts[0:-1] if acts[-1]==";" else acts
 
         stulist = stus.split(";")
         actslist = acts.split(";")
@@ -719,9 +724,14 @@ class PlanWin(object):
         # then insert loaded ones
         for act in actslist:
             actsplit = act.split(",")
-            while int(actsplit[0]) >= Constants.TOTAL_SEATS_Y:
+            try:
+                y = int(actsplit[0])
+                x = int(actsplit[1])
+            except:
+                continue
+            while y >= Constants.TOTAL_SEATS_Y:
                 self.change_grid('+r')
-            while int(actsplit[1]) >= Constants.TOTAL_SEATS_X:
+            while x >= Constants.TOTAL_SEATS_X:
                 self.change_grid('+c')
             self.edit_seat(int(actsplit[1]), int(actsplit[0]), actsplit[2], True)
         self.filepath = filepath
