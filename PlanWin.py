@@ -4,22 +4,22 @@ import sys
 import time
 import tkinter
 import pyperclip
-import tkinter.ttk as ttk
-from pathlib import Path
-from tkinter import *
+# import tkinter.ttk as ttk
+# from pathlib import Path
+# from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesnocancel
 from threading import Thread
 
-import Constants
+# import Constants
 from Constants import *
 from ManualPlaceWin import *
 from tktooltip import ToolTip
 
-if OP_SYS == 'linux':
-    from ttkthemes.themed_tk import ThemedTk
+# if OP_SYS == 'linux':
+#    from ttkthemes.themed_tk import ThemedTk
 
 from StudentSeat import *
 from xlsxwriter import *
@@ -36,10 +36,10 @@ class PlanWin(object):
         self.manwin: ManualPlaceWin = None
         self.first_edit_click = True
 
-        if OP_SYS == 'linux':
-            self.root = ThemedTk()
-        else:
-            self.root = Tk()
+        # if OP_SYS == 'linux':
+        #    self.root = ThemedTk()
+        # else:
+        self.root = Tk()
         self.root.title('Ny placering')
 
         self.bgframe = ttk.Frame(self.root)
@@ -379,7 +379,8 @@ class PlanWin(object):
         else:
             # show the manual placement window and update it
             self.manwin.update_names(only_unplaced=True)
-            self.manwin.win.deiconify()
+            if len(self.manwin.names) > 0:
+                self.manwin.win.deiconify()
 
 
     def cmd_export(self):
