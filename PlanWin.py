@@ -14,7 +14,7 @@ from tkinter.messagebox import askyesnocancel
 from threading import Thread
 
 # import Constants
-from Constants import *
+# from Constants import *
 from ManualPlaceWin import *
 from tktooltip import ToolTip
 
@@ -44,6 +44,9 @@ class PlanWin(object):
 
         self.bgframe = ttk.Frame(self.root)
         self.bgframe.pack()
+
+        self.whiteboardframe = ttk.Frame(self.bgframe)
+        self.whiteboardlabel = tk.Label(self.whiteboardframe, relief=SOLID, text='Tavla')
 
         self.notebook = ttk.Notebook(self.bgframe)
         self.notebook.pack(expand=True, side=tkinter.BOTTOM, pady=(10,0))
@@ -491,6 +494,7 @@ class PlanWin(object):
 
 
     def change_grid(self, change: str):
+        """Add or remove rows at the bottom and columns to the right"""
         max_x = Constants.TOTAL_SEATS_X
         max_y = Constants.TOTAL_SEATS_Y
 
@@ -536,7 +540,7 @@ class PlanWin(object):
         elif name.isalnum():
             return True
         elif ' ' in name.strip():
-           return True 
+            return True
         else:
             return False
     
