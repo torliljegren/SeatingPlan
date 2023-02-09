@@ -53,8 +53,8 @@ class PlanWin(object):
 
         self.whiteboardframe = ttk.Frame(self.bgframe)
         self.whiteboardframe.grid(row=2, column=0, columnspan=2)
-        self.whiteboardlabel = tk.Label(self.whiteboardframe, relief=SOLID, text=' ' * 15 + 'Tavla' + ' ' * 15,
-                                        bg='white')
+        self.whiteboardlabel = tk.Label(self.whiteboardframe, relief=SOLID, text=' ' * 30 + 'Tavla' + ' ' * 30,
+                                        bg='white', font=('Helvetica', 12, 'bold'))
         self.whiteboardlabel.pack()
 
         self.countvar = StringVar(self.bgframe, value='Antal placerade: 0   Antal i klasslistan: 0')
@@ -401,7 +401,7 @@ class PlanWin(object):
         if orientation == 'n':
             self.whiteboardframe.grid(row=2, column=0, columnspan=2)
         else:
-            self.whiteboardframe.grid(row=4, column=0, columnspan=2)
+            self.whiteboardframe.grid(row=4, column=0, columnspan=2, pady=(0,10))
 
     def on_close(self):
         # prompt to save if changes were made
