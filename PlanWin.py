@@ -51,8 +51,10 @@ class PlanWin(object):
         self.buttonframe = ttk.LabelFrame(self.bgframe, text='Verktyg')
         self.buttonframe.grid(row=0, column=0, columnspan=2, padx=10)
 
-        self.whiteboardframe = ttk.Frame(self.bgframe)
-        self.whiteboardframe.grid(row=2, column=0, columnspan=2)
+        self.whiteboard_and_seatsframe = ttk.Frame(self.notebook)
+
+        self.whiteboardframe = ttk.Frame(self.whiteboard_and_seatsframe)
+        self.whiteboardframe.grid(row=0, column=0, pady=(10,15))
         self.whiteboardlabel = tk.Label(self.whiteboardframe, relief=SOLID, text=' ' * 30 + 'Tavla' + ' ' * 30,
                                         bg='white', font=('Helvetica', 12, 'bold'))
         self.whiteboardlabel.pack()
@@ -161,13 +163,16 @@ class PlanWin(object):
         self.unpin_button.grid(row=0, column=20, padx=(2, 10), pady=10)
         ToolTip(self.unpin_button, 'Ta bort från listan', 1.5, follow=False)
 
-        self.seatframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
+        self.seatframe = ttk.Frame(self.whiteboard_and_seatsframe, width=FRAME_WIDTH, height=FRAME_HEIGHT)
         self.nameframe = ttk.Frame(self.notebook, width=FRAME_WIDTH, height=FRAME_HEIGHT)
 
-        self.seatframe.pack(fill='both', expand=True, side=LEFT)
-        self.nameframe.pack(fill='both', expand=True, side=LEFT)
+        # self.seatframe.pack(fill='both', expand=True, side=LEFT)
+        # self.nameframe.pack(fill='both', expand=True, side=LEFT)
 
-        self.notebook.add(self.seatframe, text='Placering')
+        self.seatframe.grid(row=1, column=0)
+        self.nameframe.grid(row=0, column=0)
+
+        self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
 
         # TODO: change this widget to my own per here:
@@ -399,9 +404,9 @@ class PlanWin(object):
         print('Orientation is:', orientation)
         self.whiteboardframe.grid_forget()
         if orientation == 'n':
-            self.whiteboardframe.grid(row=2, column=0, columnspan=2)
+            self.whiteboardframe.grid(row=0, column=0, pady=(10,15))
         else:
-            self.whiteboardframe.grid(row=4, column=0, columnspan=2, pady=(0,10))
+            self.whiteboardframe.grid(row=2, column=0, columnspan=2, pady=(15, 0))
 
     def on_close(self):
         # prompt to save if changes were made
