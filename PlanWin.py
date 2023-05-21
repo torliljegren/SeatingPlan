@@ -12,6 +12,8 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesnocancel
 from threading import Thread
+from random import shuffle
+from math import ceil
 
 # import Constants
 # from Constants import *
@@ -172,13 +174,29 @@ class PlanWin(object):
         self.seatframe.grid(row=1, column=0)
         self.nameframe.grid(row=0, column=0)
 
+        # Init the divide into groups part #
+        self.groupframe = ttk.Frame(self.notebook)
+        self.grouptextarea = tk.Text(self.groupframe)
+
+        self.randgroupsbutton = ttk.Button(self.groupframe, text='Slumpa', command=self.cmd_randomize_groups)
+        self.randgroupsbutton.pack()
+
+        ttk.Label(self.groupframe, text='Gruppstorlek:').pack()
+        self.groupsizevar = IntVar(master=self.groupframe, value=4)
+        self.groupsizeentry = ttk.Entry(self.groupframe, textvariable=self.groupsizevar, width=3, justify=tk.CENTER)
+        self.groupsizeentry.pack()
+
+        self.grouptextarea.pack(fill=tk.BOTH)
+
+        # Add the frames to the notebook
         self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
+        self.notebook.add(self.groupframe, text='Grupper')
 
         # TODO: change this widget to my own per here:
         # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
         self.textarea = ScrolledText(self.nameframe, name='textarea')
-        self.textarea.pack(expand=True, side=TOP, fill='both')
+        self.textarea.pack(expand=True, side=TOP, fill=tk.BOTH)
         self.textarea.insert(1.0, 'Högerklicka för att klistra in.')
 
         if prev_files:
@@ -247,6 +265,40 @@ class PlanWin(object):
     ########################
     #     BUTTON CALLS     #
     ########################
+
+    def cmd_randomize_groups(self):
+        n_groups: int
+        names = list(self.name_tuple())
+        try:
+            n_groups = ceil(len(names) / self.groupsizevar.get())
+        except ValueError:
+            return
+        self.grouptextarea.delete(1.0, tk.END)
+
+        shuffle(names)
+
+        # Create a list for each group
+        groups = [list() for _ in range(n_groups)]
+        # Fill the groups with names
+        group_index = 0
+        while len(names) > 0:
+            if group_index == n_groups:
+                group_index = 0
+
+            groups[group_index].append(names.pop())
+
+            group_index += 1
+
+        # Create a string for the textarea
+        groups_str = str()
+        group_index = 1
+        for group in groups:
+            groups_str += str(group_index)
+            for name in group:
+                groups_str += '   ' + name
+            groups_str += '\n'
+            group_index += 1
+        self.grouptextarea.insert(1.0, groups_str)
 
     # paste into textarea
     def cmd_paste(self, e):
