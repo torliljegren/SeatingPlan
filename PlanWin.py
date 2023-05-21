@@ -271,7 +271,7 @@ class PlanWin(object):
         names = list(self.name_tuple())
         try:
             n_groups = ceil(len(names) / self.groupsizevar.get())
-        except ValueError:
+        except:
             return
         self.grouptextarea.delete(1.0, tk.END)
 
