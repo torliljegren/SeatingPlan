@@ -12,8 +12,6 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesnocancel
 from threading import Thread
-from random import shuffle
-from math import ceil
 
 # import Constants
 # from Constants import *
@@ -63,7 +61,7 @@ class PlanWin(object):
 
         self.countvar = StringVar(self.bgframe, value='Antal placerade: 0   Antal i klasslistan: 0')
         self.countlabel = Label(self.bgframe, textvariable=self.countvar)
-        self.countlabel.grid(row=1, column=0, pady=(5,0))
+        self.countlabel.grid(row=1, column=0, pady=(5,0), padx=15)
 
         imrand = PhotoImage(file='rand.png')
         self.randbutton = ttk.Button(self.buttonframe, image=imrand, command=self.cmd_rand)
@@ -174,31 +172,13 @@ class PlanWin(object):
         self.seatframe.grid(row=1, column=0)
         self.nameframe.grid(row=0, column=0)
 
-        # Init the divide into groups part #
-        self.groupframe = ttk.Frame(self.notebook)
-        self.grouptextarea = tk.Text(self.groupframe)
-
-        self.randwidgetframe = ttk.Frame(self.groupframe)
-        self.randgroupsbutton = ttk.Button(self.randwidgetframe, text='Slumpa', command=self.cmd_randomize_groups)
-        self.randgroupsbutton.grid(row=1, column=0, columnspan=2, pady=(5,0))
-
-        ttk.Label(self.randwidgetframe, text='Gruppstorlek:').grid(row=0, column=0)
-        self.groupsizevar = IntVar(master=self.groupframe, value=4)
-        self.groupsizeentry = ttk.Entry(self.randwidgetframe, textvariable=self.groupsizevar, width=3, justify=tk.CENTER)
-        self.groupsizeentry.grid(row=0, column=1)
-        self.randwidgetframe.pack()
-
-        self.grouptextarea.pack(fill=tk.BOTH)
-
-        # Add the frames to the notebook
         self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
-        self.notebook.add(self.groupframe, text='Grupper')
 
         # TODO: change this widget to my own per here:
         # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
         self.textarea = ScrolledText(self.nameframe, name='textarea')
-        self.textarea.pack(expand=True, side=TOP, fill=tk.BOTH)
+        self.textarea.pack(expand=True, side=TOP, fill='both')
         self.textarea.insert(1.0, 'Högerklicka för att klistra in.')
 
         if prev_files:
@@ -224,7 +204,7 @@ class PlanWin(object):
 
         if OP_SYS == 'linux':
             s = ttk.Style()
-            s.theme_use('default')
+            s.theme_use('plastik')
 
         self.update_thread = Thread(target=self.periodic_stucount_update, daemon=True,
                                     args=(self.root, self.update_student_count, self.run_thread))
@@ -267,41 +247,6 @@ class PlanWin(object):
     ########################
     #     BUTTON CALLS     #
     ########################
-
-    def cmd_randomize_groups(self):
-        n_groups: int
-        names = list(self.name_tuple())
-        try:
-            n_groups = ceil(len(names) / self.groupsizevar.get())
-        except:
-            return
-
-        shuffle(names)
-
-        # Create a list for each group
-        groups = [list() for _ in range(n_groups)]
-        # Fill the groups with names
-        group_index = 0
-        while len(names) > 0:
-            if group_index == n_groups:
-                group_index = 0
-
-            groups[group_index].append(names.pop())
-
-            group_index += 1
-
-        # Create a string for the textarea
-        groups_str = str()
-        group_index = 1
-        for group in groups:
-            groups_str += str(group_index)
-            for name in group:
-                groups_str += '   ' + name
-            groups_str += '\n'
-            group_index += 1
-
-        self.grouptextarea.delete(1.0, tk.END)
-        self.grouptextarea.insert(1.0, groups_str)
 
     # paste into textarea
     def cmd_paste(self, e):
@@ -461,7 +406,7 @@ class PlanWin(object):
         if orientation == 'n':
             self.whiteboardframe.grid(row=0, column=0, pady=(10,15))
         else:
-            self.whiteboardframe.grid(row=2, column=0, columnspan=2, pady=(15, 10))
+            self.whiteboardframe.grid(row=2, column=0, columnspan=2, pady=(15, 0))
 
     def on_close(self):
         # prompt to save if changes were made
@@ -834,7 +779,7 @@ class PlanWin(object):
         headingformat.set_right()
         headingformat.set_border(2)
 
-        ortn = self.upvar.get()
+        ortn = self.orientationvar.get()
 
         if ortn == 'n':
             ws.merge_range('B1:' + xmax + '1', 'Tavla', headingformat)
