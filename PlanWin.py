@@ -648,6 +648,12 @@ class PlanWin(object):
         # prepare strings from student list
         students = self.textarea.get(1.0, tkinter.END).split("\n")
 
+        # rotate the classroom if orientation is south, to always save in north position
+        return_to_south = False
+        if self.orientationvar.get() == "s":
+            self.northbutton.invoke()
+            return_to_south = True
+
         # prepare strings of taken seats.
         taken_seats: list[str] = []
         for seat in self.seats:
@@ -668,6 +674,9 @@ class PlanWin(object):
             f.write("\nACTIVE SEATS\n")
             for seat in taken_seats:
                 f.write(seat)
+
+            if return_to_south:
+                self.southbutton.invoke()
 
             # write the orientation
             f.write("\nORIENTATION\n")
@@ -760,6 +769,10 @@ class PlanWin(object):
         # close the manual placement window if its opened
         if self.editvar.get():
             self.editbutton.invoke()
+
+        # rotate the classroom if it was saved in orientation south
+        if orient == "s":
+            self.southbutton.invoke()
 
     def rotate_seats_180(self):
         xmax, ymax = self.seat_bounds()
