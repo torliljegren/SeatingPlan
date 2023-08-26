@@ -111,10 +111,10 @@ class PlanWin(object):
         ttk.Label(self.buttonframe, text='Tavlan:').grid(row=0, column=10, padx=(10, 0), pady=10)
         self.orientationvar = tkinter.StringVar(value='n')
         self.northbutton = ttk.Radiobutton(self.buttonframe, text='Norr', value='n', variable=self.orientationvar,
-                                           command=self.cmd_orientation)
+                                           command=self.cmd_orientation_n, state='disabled')
         self.northbutton.grid(row=0, column=11, padx=(0, 5), pady=10)
         self.southbutton = ttk.Radiobutton(self.buttonframe, text='Söder', value='s', variable=self.orientationvar,
-                                           command=self.cmd_orientation)
+                                           command=self.cmd_orientation_s)
         self.southbutton.grid(row=0, column=12, pady=10)
 
         im1 = PhotoImage(file='addrow.png')
@@ -204,7 +204,7 @@ class PlanWin(object):
 
         if OP_SYS == 'linux':
             s = ttk.Style()
-            s.theme_use('plastik')
+            s.theme_use('clam')
 
         self.update_thread = Thread(target=self.periodic_stucount_update, daemon=True,
                                     args=(self.root, self.update_student_count, self.run_thread))
@@ -394,7 +394,16 @@ class PlanWin(object):
         else:
             self.export_xlsx(filepath)
 
-    def cmd_orientation(self):
+    def cmd_orientation_n(self):
+        self.northbutton.config(state='disabled')
+        self.southbutton.config(state='enabled')
+        self.rotate_seats_180()
+        self.flip_whiteboard()
+        self.dirty = True
+
+    def cmd_orientation_s(self):
+        self.southbutton.config(state='disabled')
+        self.northbutton.config(state='enabled')
         self.rotate_seats_180()
         self.flip_whiteboard()
         self.dirty = True
@@ -660,6 +669,10 @@ class PlanWin(object):
             for seat in taken_seats:
                 f.write(seat)
 
+            # write the orientation
+            f.write("\nORIENTATION\n")
+            f.write(self.orientationvar.get())
+
     def update_combobox(self, newpath: str = ""):
         filenames = []
         for filepath in self.prev_files:
@@ -682,6 +695,7 @@ class PlanWin(object):
     def load_data(self, filepath: str):
         stus = ""
         acts = ""
+        orient = ""
         test_path = Path(filepath)
         if not test_path.is_file():
             ans = messagebox.askyesno(title='Filfel', message='Kunde inte öppna filen\n' + filepath +
@@ -697,6 +711,13 @@ class PlanWin(object):
             stus = f.readline()
             f.readline()
             acts = f.readline()
+            # must catch exception if opening legacy file without orientation data
+            try:
+                f.readline()
+                orient = f.readline()
+            except IOError as e:
+                print("Opening a legacy file without orientation data")
+                print("defaulting to north")
 
         # remove trailing ;
         if len(stus) >= 2:
@@ -718,6 +739,7 @@ class PlanWin(object):
 
         # clear seats and insert the loaded ones
         self.cmd_clear()
+
         # check if grid needs to be enlarged
         # then insert loaded ones
         for act in actslist:
