@@ -724,9 +724,14 @@ class PlanWin(object):
             try:
                 f.readline()
                 orient = f.readline()
+                print(f'orient={orient}')
             except IOError as e:
                 print("Opening a legacy file without orientation data")
                 print("defaulting to north")
+
+            if orient not in ("n", "s") and self.orientationvar.get() != "n":
+                print("Set orientation north")
+                self.northbutton.invoke()
 
         # remove trailing ;
         if len(stus) >= 2:
@@ -771,8 +776,10 @@ class PlanWin(object):
             self.editbutton.invoke()
 
         # rotate the classroom if it was saved in orientation south
-        if orient == "s":
+        if orient == "s" and self.orientationvar.get() == "n":
             self.southbutton.invoke()
+        elif orient == "n" and self.orientationvar.get() == "s":
+            self.northbutton.invoke()
 
     def rotate_seats_180(self):
         xmax, ymax = self.seat_bounds()
