@@ -649,10 +649,9 @@ class PlanWin(object):
         students = self.textarea.get(1.0, tkinter.END).split("\n")
 
         # rotate the classroom if orientation is south, to always save in north position
-        return_to_south = False
-        if self.orientationvar.get() == "s":
+        south_facing = self.orientationvar.get() == 's'
+        if south_facing:
             self.northbutton.invoke()
-            return_to_south = True
 
         # prepare strings of taken seats.
         taken_seats: list[str] = []
@@ -675,7 +674,8 @@ class PlanWin(object):
             for seat in taken_seats:
                 f.write(seat)
 
-            if return_to_south:
+            # return to south
+            if south_facing:
                 self.southbutton.invoke()
 
             # write the orientation
@@ -720,18 +720,21 @@ class PlanWin(object):
             stus = f.readline()
             f.readline()
             acts = f.readline()
-            # must catch exception if opening legacy file without orientation data
-            try:
-                f.readline()
-                orient = f.readline()
+
+            # must see if we're opening legacy file without orientation data
+            f.readline() # discard heading
+            orient = f.readline()
+            if orient:
                 print(f'orient={orient}')
-            except IOError as e:
+            else:
                 print("Opening a legacy file without orientation data")
                 print("defaulting to north")
 
-            if orient not in ("n", "s") and self.orientationvar.get() != "n":
-                print("Set orientation north")
-                self.northbutton.invoke()
+            if orient not in ("n", "s"):
+                print(f"Orientation data is corrput: orient={orient}")
+                print("defaulting to north")
+                if self.orientationvar.get() == "s":
+                    self.northbutton.invoke()
 
         # remove trailing ;
         if len(stus) >= 2:
@@ -780,6 +783,7 @@ class PlanWin(object):
             self.southbutton.invoke()
         elif orient == "n" and self.orientationvar.get() == "s":
             self.northbutton.invoke()
+            self.rotate_seats_180() # for some reason the return to n misses this rotation. add it back.
 
     def rotate_seats_180(self):
         xmax, ymax = self.seat_bounds()
