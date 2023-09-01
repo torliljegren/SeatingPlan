@@ -18,8 +18,9 @@ from threading import Thread
 from ManualPlaceWin import *
 from tktooltip import ToolTip
 
-# if OP_SYS == 'linux':
-#    from ttkthemes.themed_tk import ThemedTk
+if OP_SYS == 'linux':
+    print("Importing ThemedTk")
+    from ttkthemes.themed_tk import ThemedTk
 
 from StudentSeat import *
 from xlsxwriter import *
@@ -36,10 +37,7 @@ class PlanWin(object):
         self.manwin: ManualPlaceWin = None
         self.first_edit_click = True
 
-        # if OP_SYS == 'linux':
-        #    self.root = ThemedTk()
-        # else:
-        self.root = Tk()
+        self.root = ThemedTk(theme='plastik') if OP_SYS == 'linux' else Tk()
         self.root.title('Ny placering')
 
         self.bgframe = ttk.Frame(self.root)
@@ -202,9 +200,9 @@ class PlanWin(object):
 
         self.setup_grid()
 
-        if OP_SYS == 'linux':
-            s = ttk.Style()
-            s.theme_use('clam')
+        # if OP_SYS == 'linux':
+        #     s = ttk.Style()
+        #     s.theme_use('clam')
 
         self.update_thread = Thread(target=self.periodic_stucount_update, daemon=True,
                                     args=(self.root, self.update_student_count, self.run_thread))
