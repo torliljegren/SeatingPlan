@@ -67,7 +67,7 @@ class PlanWin(object):
         ToolTip(self.randbutton, 'Slumpa sittplatser', 1.5, follow=False)
 
         imsort = PhotoImage(file='sort.png')
-        self.sortbutton = ttk.Button(self.buttonframe, image=imsort, command=self.cmd_sort)
+        self.sortbutton = ttk.Button(self.buttonframe, image=imsort, command=self.cmd_sort_columnwise)
         self.sortbutton.grid(row=0, column=2, padx=10, pady=10)
         ToolTip(self.sortbutton, 'Sortera sittplatser A-Ö', 1.5, follow=False)
 
@@ -173,7 +173,7 @@ class PlanWin(object):
         self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
 
-        # TODO: change this widget to my own per here:
+        # TODO: change below widget to my own per here:
         # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
         self.textarea = ScrolledText(self.nameframe, name='textarea')
         self.textarea.pack(expand=True, side=TOP, fill='both')
@@ -337,6 +337,91 @@ class PlanWin(object):
         if self.manwin:
             self.manwin.update_names(only_unplaced=True)
         self.dirty = True
+
+    def room_bounds(self) -> tuple:
+        max_x = max([s.xpos for s in self.seats])
+        max_y = max([s.ypos for s in self.seats])
+        return max_x, max_y
+
+
+    # TODO: implement seat_cluster(x_pos, y_pos) -> tuple[StudentSeat] that returns the seat and all adjacent seats
+    def seat_cluster(self, x_pos, y_pos):
+        focus = self.seat_at(x_pos, y_pos)
+        max_x, max_y = self.room_bounds()
+        cluster = [focus]
+
+        # search upwards
+
+
+        # search downwards
+
+        # search left
+        # search right
+
+    def seat_at(self, x_pos, y_pos):
+        for seat in self.seats:
+            if seat.xpos == x_pos and seat.ypos == y_pos:
+                return seat
+        return None
+
+
+    def cmd_sort_columnwise(self):
+        # sort the lists and use it to search and fill the active seats
+        # for each column in the list
+        #   for each element in the column
+        #       insert a name from sorted namelist
+        columns = self.active_seats_columnwise()
+        names = list(self.name_tuple())
+        names.sort()
+        seatnr = 0
+        self.cmd_unplace()
+        for column in columns:
+            for seat in column:
+                seat.name_set(names[seatnr])
+                seatnr += 1
+
+    def cmd_sort_columnwise_cluster(self):
+        # sort the lists and use it to search and fill the active seats
+        # for each column in the list
+        #   for each element in the column
+        #       insert a name from sorted namelist
+        columns = self.active_seats_columnwise()
+        names = list(self.name_tuple())
+        names.sort()
+        seatnr = 0
+        self.cmd_unplace()
+        for column in columns:
+            for seat in column:
+                seat.name_set(names[seatnr])
+                # remove the name from the list as it is already taken
+                names.pop(seatnr)
+                seatnr += 1
+
+    def active_seats_columnwise(self):
+        active_seats = self.active_seats()
+        bounds = self.seat_bounds()
+
+        # make a list of lists with seats row in each column. It will be unordered
+        # [
+        #    col1       col2    ....
+        #    [3,        [5,
+        #     0,         2,
+        #     4,         0,
+        #     ...]       ...]
+        # ]
+
+        columns = list()
+
+        for i in range(bounds[0]+1):
+            column = list()
+            for seat in active_seats:
+                if seat.xpos == i:
+                    print(seat.name_get())
+                    column.append(seat)
+            column.sort(key=lambda s: s.ypos)
+            columns.append(column)
+        return columns
+
 
     def cmd_rand(self):
         # clear names
