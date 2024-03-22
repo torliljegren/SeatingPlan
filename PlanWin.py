@@ -67,7 +67,7 @@ class PlanWin(object):
         ToolTip(self.randbutton, 'Slumpa sittplatser', 1.5, follow=False)
 
         imsort = PhotoImage(file='sort.png')
-        self.sortbutton = ttk.Button(self.buttonframe, image=imsort, command=self.cmd_sort_columnwise)
+        self.sortbutton = ttk.Button(self.buttonframe, image=imsort, command=self.cmd_sort_columnwise_cluster)
         self.sortbutton.grid(row=0, column=2, padx=10, pady=10)
         ToolTip(self.sortbutton, 'Sortera sittplatser A-Ö', 1.5, follow=False)
 
@@ -344,19 +344,67 @@ class PlanWin(object):
         return max_x, max_y
 
 
-    # TODO: implement seat_cluster(x_pos, y_pos) -> tuple[StudentSeat] that returns the seat and all adjacent seats
-    def seat_cluster(self, x_pos, y_pos):
+    # Finds clustered active seats near seat at (x_pos, y_pos)
+    def seat_cluster(self, x_pos, y_pos, col_list=None) -> list[StudentSeat]:
+        # the col_list is to avoid unnecesary overhead by calling active_seats_columnwise() repeatedly
+        if not col_list:
+            col_list = self.active_seats_columnwise()
         focus = self.seat_at(x_pos, y_pos)
-        max_x, max_y = self.room_bounds()
         cluster = [focus]
 
         # search upwards
-
+        row = int(str(y_pos)) - 1
+        while row >= 0:
+            if col_list[x_pos][row].active:
+                cluster.append(col_list[x_pos][row])
+            else:
+                break
+            row -= 1
 
         # search downwards
+        row = int(str(y_pos)) + 1
+        while row <= TOTAL_SEATS_Y:
+            if col_list[x_pos][row].active:
+                cluster.append(col_list[x_pos][row])
+            else:
+                break
+            row += 1
 
-        # search left
+
+        col = int(str(x_pos)) + 1
         # search right
+        while col <= TOTAL_SEATS_X:
+            if col_list[col][y_pos].active:
+                cluster.append(col_list[col][y_pos])
+            else:
+                break
+            col += 1
+
+        col = int(str(x_pos)) - 1
+        # search left
+        while col <= TOTAL_SEATS_X:
+            if col_list[col][y_pos].active:
+                cluster.append(col_list[col][y_pos])
+            else:
+                break
+            col -= 1
+
+        print(f'Found a cluster of {len(cluster)} seats')
+
+        return cluster
+
+    def get_seat_clusters(self):
+        # iterate through all active seats, columnwise
+        acts = self.active_seats_columnwise()
+        clusters = list()
+
+        for column in acts:
+            for seat in column:
+                cluster = self.seat_cluster(seat.xpos, seat.ypos, acts)
+                for c_seat in acts:
+                    clusters.append(cluster)
+                    acts.remove(c_seat)
+        return clusters
 
     def seat_at(self, x_pos, y_pos):
         for seat in self.seats:
@@ -381,21 +429,15 @@ class PlanWin(object):
                 seatnr += 1
 
     def cmd_sort_columnwise_cluster(self):
-        # sort the lists and use it to search and fill the active seats
-        # for each column in the list
-        #   for each element in the column
-        #       insert a name from sorted namelist
-        columns = self.active_seats_columnwise()
         names = list(self.name_tuple())
         names.sort()
-        seatnr = 0
-        self.cmd_unplace()
-        for column in columns:
-            for seat in column:
-                seat.name_set(names[seatnr])
-                # remove the name from the list as it is already taken
-                names.pop(seatnr)
-                seatnr += 1
+
+        clusters = self.get_seat_clusters()
+        name_nr = 0
+        for cluster in clusters:
+            for seat in cluster:
+                seat.name_set(names[name_nr])
+                name_nr += 1
 
     def active_seats_columnwise(self):
         active_seats = self.active_seats()
