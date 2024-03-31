@@ -88,5 +88,6 @@ class StudentSeat(Button):
     def on_leave(event, seat):
         color = Constants.ACTIVE_COLOR if seat.active else Constants.PASSIVE_COLOR
         seat.configure(activebackground=color)#, borderwidth=0)
-    # def __str__(self) -> str:
-    #    return "Seat "+str(self.xpos)+", "+str(self.ypos)
+
+    #def __str__(self) -> str:
+    #    return self.name_get() + ", " + str(self.xpos)+", "+str(self.ypos)

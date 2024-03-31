@@ -344,66 +344,38 @@ class PlanWin(object):
         return max_x, max_y
 
 
-    # Finds clustered active seats near seat at (x_pos, y_pos)
-    def seat_cluster(self, x_pos, y_pos, col_list=None) -> list[StudentSeat]:
-        # the col_list is to avoid unnecesary overhead by calling active_seats_columnwise() repeatedly
-        if not col_list:
-            col_list = self.active_seats_columnwise()
+    # Finds clustered active seats near seat at x_pos, y_pos
+    def seat_cluster(self, x_pos, y_pos, col_list, name_list) -> list[StudentSeat]:
+        # the col_list is to avoid unnecesary overhead by calling seats_columnwise() repeatedly
         focus = self.seat_at(x_pos, y_pos)
+        print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
-        # search upwards
-        row = int(str(y_pos)) - 1
-        while row >= 0:
-            if col_list[x_pos][row].active:
-                cluster.append(col_list[x_pos][row])
-            else:
-                break
-            row -= 1
-
-        # search downwards
-        row = int(str(y_pos)) + 1
-        while row <= TOTAL_SEATS_Y:
-            if col_list[x_pos][row].active:
-                cluster.append(col_list[x_pos][row])
-            else:
-                break
-            row += 1
-
-
-        col = int(str(x_pos)) + 1
         # search right
-        while col <= TOTAL_SEATS_X:
-            if col_list[col][y_pos].active:
-                cluster.append(col_list[col][y_pos])
-            else:
-                break
-            col += 1
+        col = focus.xpos
+        row = focus.ypos
 
-        col = int(str(x_pos)) - 1
-        # search left
-        while col <= TOTAL_SEATS_X:
-            if col_list[col][y_pos].active:
-                cluster.append(col_list[col][y_pos])
-            else:
-                break
-            col -= 1
 
-        print(f'Found a cluster of {len(cluster)} seats')
+
+        print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
 
         return cluster
 
     def get_seat_clusters(self):
-        # iterate through all active seats, columnwise
-        acts = self.active_seats_columnwise()
+        active_seats_cols = self.active_seats_columnwise()
+        all_seats_cols = self.seats_columnwise()
+        remaining_names = list(self.name_tuple())
+        remaining_names.sort()
         clusters = list()
 
-        for column in acts:
-            for seat in column:
-                cluster = self.seat_cluster(seat.xpos, seat.ypos, acts)
-                for c_seat in acts:
+        for col in active_seats_cols:
+            for seat in col:
+                if seat.name_get() in remaining_names:
+                    cluster = self.seat_cluster(seat.xpos, seat.ypos, all_seats_cols, remaining_names)
                     clusters.append(cluster)
-                    acts.remove(c_seat)
+                    for c_seat in cluster:
+                        remaining_names.remove(c_seat.name_get())
+
         return clusters
 
     def seat_at(self, x_pos, y_pos):
@@ -413,12 +385,13 @@ class PlanWin(object):
         return None
 
 
+
     def cmd_sort_columnwise(self):
         # sort the lists and use it to search and fill the active seats
         # for each column in the list
         #   for each element in the column
         #       insert a name from sorted namelist
-        columns = self.active_seats_columnwise()
+        columns = self.seats_columnwise()
         names = list(self.name_tuple())
         names.sort()
         seatnr = 0
@@ -458,7 +431,30 @@ class PlanWin(object):
             column = list()
             for seat in active_seats:
                 if seat.xpos == i:
-                    print(seat.name_get())
+                    column.append(seat)
+            column.sort(key=lambda s: s.ypos)
+            columns.append(column)
+        return columns
+
+    def seats_columnwise(self):
+        bounds = self.seat_bounds()
+
+        # make a list of lists with seats row in each column. It will be unordered
+        # [
+        #    col1       col2    ....
+        #    [3,        [5,
+        #     0,         2,
+        #     4,         0,
+        #     ...]       ...]
+        # ]
+
+        columns = list()
+
+        for i in range(bounds[0]+1):
+            column = list()
+            for seat in self.seats:
+                if seat.xpos == i:
+                    print(f'[{seat.name_get()}]', end=",")
                     column.append(seat)
             column.sort(key=lambda s: s.ypos)
             columns.append(column)
@@ -467,17 +463,14 @@ class PlanWin(object):
 
     def cmd_rand(self):
         # clear names
-        # print("Window height = ", self.root.winfo_height())
         for seat in self.seats:
             seat.name_set("")
 
         # get names
         names = list(self.name_tuple())
-        # print("Original:",names)
 
         # rand names
         random.shuffle(names)
-        # print("Shuffled:", names)
 
         # place names
         self.place_names(tuple(names))
@@ -535,7 +528,6 @@ class PlanWin(object):
 
     def flip_whiteboard(self):
         orientation = self.orientationvar.get()
-        print('Orientation is:', orientation)
         self.whiteboardframe.grid_forget()
         if orientation == 'n':
             self.whiteboardframe.grid(row=0, column=0, pady=(10,15))
@@ -555,7 +547,6 @@ class PlanWin(object):
         # write list of previous opened files to file
         with open(PREV_FILES_PATH, mode='w', encoding='utf-8') as f:
             if self.prev_files:
-                # print('Writing to tidigare.txt:', self.prev_files)
                 for filepath in self.prev_files:
                     f.write(filepath + ';')
             else:
@@ -624,10 +615,7 @@ class PlanWin(object):
 
     def search_on_fout(self, e):
         if not self.search_var.get() or self.search_var.get() == 'Sök':
-            # print('Clearing search')
             self.search_on_leave(None)
-        # else:
-        # print('Searchtext is', self.search_var.get())
 
     def change_grid(self, change: str):
         """Add or remove rows at the bottom and columns to the right"""
@@ -687,7 +675,6 @@ class PlanWin(object):
         tempnames = str.split(namesstr, "\n")
         clean_names: list[str] = [name for name in tempnames if self.is_proper_name(name)]
 
-        # print('name_tuple():', tempnames)
         return tuple(clean_names)
 
     def place_names(self, names: tuple):
@@ -713,7 +700,6 @@ class PlanWin(object):
             for seat in self.seats:
                 if seat.active:
                     n += 1
-        # print("Active:",n)
         return n
 
     def active_seats(self) -> list[StudentSeat]:
@@ -726,8 +712,6 @@ class PlanWin(object):
     def seat_callback(self, btn: StudentSeat):
         if self.editclicks == 1:
             Constants.seat2 = btn
-            # print("Seat1:", Constants.seat1, "Seat2:", Constants.seat2)
-            # print("Swapping", name1, "and", name2)
             self.swap_seats(Constants.seat1, Constants.seat2)
             Constants.seat1.configure(bg=Constants.ACTIVE_COLOR)
             Constants.seat2.configure(bg=Constants.ACTIVE_COLOR)
@@ -738,7 +722,6 @@ class PlanWin(object):
         elif self.editclicks == 0:
             self.editclicks += 1
             Constants.seat1 = btn
-            # print("Seat1:", Constants.seat1, "Seat2:", Constants.seat2)
 
     def swap_seats(self, seat1: StudentSeat, seat2: StudentSeat):
         self.dirty = True
@@ -746,7 +729,6 @@ class PlanWin(object):
         name2 = seat2.name_get()
         act1 = seat1.active
         act2 = seat2.active
-        # print("Swapping", name1, "and", name2)
         seat1.name_set(name2)
         seat2.name_set(name1)
 
@@ -869,7 +851,6 @@ class PlanWin(object):
 
         stulist = stus.split(";")
         actslist = acts.split(";")
-        # print("Students:",stulist,"\nSeats:",actslist)
 
         # replace textarea with loaded students
         stustring = ""
@@ -931,7 +912,6 @@ class PlanWin(object):
         self.cmd_search(None)
 
     def export_xlsx(self, filepath: str):
-        # print('Saving workbook:', filepath)
         wb = Workbook(filepath)
         ws = wb.add_worksheet()
         ws.set_landscape()
