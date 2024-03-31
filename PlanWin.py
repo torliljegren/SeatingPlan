@@ -351,15 +351,26 @@ class PlanWin(object):
         print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
-        # search right
-        col = focus.xpos
-        row = focus.ypos
+        # search horizontally first and for each horizontal neighbour find its vertical neighbour
+        h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list, name_list)
+        if len(h_neighbours) > 0:
+            cluster.extend(h_neighbours)
 
-
+        for seat in cluster:
+            v_neighbours = self.vertical_neighbours(x_pos, y_pos, col_list, name_list)
+            if len(v_neighbours) > 0:
+                cluster.extend(v_neighbours)
 
         print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
 
         return cluster
+
+
+    def vertical_neighbours(self, x_pos, y_pos, col_list, name_list):
+        pass
+
+    def horizontal_neighbours(self, x_pos, y_pos, seat, col_list, name_list):
+        pass
 
     def get_seat_clusters(self):
         active_seats_cols = self.active_seats_columnwise()
