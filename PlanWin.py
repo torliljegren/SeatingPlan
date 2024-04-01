@@ -14,7 +14,7 @@ from tkinter.messagebox import askyesnocancel
 from threading import Thread
 
 # import Constants
-# from Constants import *
+from Constants import *
 from ManualPlaceWin import *
 from tktooltip import ToolTip
 
@@ -22,7 +22,7 @@ if OP_SYS == 'linux':
     print("Importing ThemedTk")
     from ttkthemes.themed_tk import ThemedTk
 
-from StudentSeat import *
+from StudentSeat import StudentSeat
 from xlsxwriter import *
 
 
@@ -351,7 +351,8 @@ class PlanWin(object):
         print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
-        # search horizontally first and for each horizontal neighbour find its vertical neighbour
+        # search horizontally first and for each horizontal neighbour find its vertical neighbours
+        # it is sufficient to find only right and downwards neighbours
         h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list, name_list)
         if len(h_neighbours) > 0:
             cluster.extend(h_neighbours)
@@ -367,10 +368,26 @@ class PlanWin(object):
 
 
     def vertical_neighbours(self, x_pos, y_pos, col_list, name_list):
-        pass
+        cluster = list()
+        while y_pos < TOTAL_SEATS_Y - 1:
+            neighb = col_list[x_pos][y_pos + 1]
+            if neighb.active and neighb.name_get() in name_list:
+                cluster.append(neighb)
+                y_pos += 1
+            else:
+                break
+        return cluster
 
-    def horizontal_neighbours(self, x_pos, y_pos, seat, col_list, name_list):
-        pass
+    def horizontal_neighbours(self, x_pos, y_pos, col_list, name_list):
+        cluster = list()
+        while x_pos < TOTAL_SEATS_X - 1:
+            neighb = col_list[x_pos + 1][y_pos]
+            if neighb.active and neighb.name_get() in name_list:
+                cluster.append(neighb)
+                x_pos += 1
+            else:
+                break
+        return cluster
 
     def get_seat_clusters(self):
         active_seats_cols = self.active_seats_columnwise()

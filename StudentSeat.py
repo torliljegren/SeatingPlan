@@ -3,7 +3,7 @@
 import Constants
 import platform
 from tkinter import StringVar, BooleanVar
-import PlanWin
+# import PlanWin
 
 # import the right kind of button depending on OS
 if Constants.OP_SYS == 'darwin':
@@ -24,7 +24,7 @@ class StudentSeat(Button):
         self.ypos = ypos
         self.editvar = editvar
         self.callback = callback
-        self.win: PlanWin.PlanWin = win
+        self.win = win
         self.has_swapped = False
 
         self.bind('<Enter>', lambda e: StudentSeat.on_enter(e, self))
