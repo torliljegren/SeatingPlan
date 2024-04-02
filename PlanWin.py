@@ -19,7 +19,7 @@ from ManualPlaceWin import *
 from tktooltip import ToolTip
 
 if OP_SYS == 'linux':
-    print("Importing ThemedTk")
+    # print("Importing ThemedTk")
     from ttkthemes.themed_tk import ThemedTk
 
 from StudentSeat import StudentSeat
@@ -230,7 +230,7 @@ class PlanWin(object):
                 xmax = seat.xpos
             if seat.ypos > ymax and seat.active:
                 ymax = seat.ypos
-        # print("xmax ymax =", xmax, ymax)
+        # # print("xmax ymax =", xmax, ymax)
         return (xmax, ymax)
 
     # Threading function for updating student count
@@ -240,7 +240,7 @@ class PlanWin(object):
             # t1 = time.perf_counter_ns()
             upd()
             # t2 = time.perf_counter_ns()
-            # print('%f ms'%(float((t2-t1)*10**(-6))))
+            # # print('%f ms'%(float((t2-t1)*10**(-6))))
 
     ########################
     #     BUTTON CALLS     #
@@ -250,17 +250,17 @@ class PlanWin(object):
     def cmd_paste(self, e):
         # prepare and clean up the list
         namelist_1 = [n.strip() for n in pyperclip.paste().split('\n') if '\n' not in n and n != '']
-        print('Namelist 1 len=', len(namelist_1), namelist_1)
-        print(namelist_1)
+        # print('Namelist 1 len=', len(namelist_1), namelist_1)
+        # print(namelist_1)
         namelist_2 = [n for n in namelist_1 if n != '']
-        print('Namelist 2 len=', len(namelist_2), namelist_2)
+        # print('Namelist 2 len=', len(namelist_2), namelist_2)
 
         # if platform is windows, sometimes åäö and accented chars get messed up. Try to encode then decode to resolve.
         if OP_SYS == 'windows':
             try:
-                print('Attempting to fix utf8 chars')
+                # print('Attempting to fix utf8 chars')
                 templist = [n.encode('utf-8').decode('utf-8') for n in namelist_2]
-                print('Success!')
+                # print('Success!')
                 namelist_2 = templist
             except UnicodeEncodeError:
                 print('UTF-8 encoding error in string:', [s for s in namelist_2 if s not in namelist_2])
@@ -292,7 +292,7 @@ class PlanWin(object):
     def cmd_save(self, e=None, saveas=False):
         filepath = ''
         if not self.filepath or saveas:
-            # print('self.filepath = ', self.filepath, '   saveas = ', saveas)
+            # # print('self.filepath = ', self.filepath, '   saveas = ', saveas)
             filepath = asksaveasfilename(parent=self.root, defaultextension=".dat",
                                          filetypes=[("Placeringsdata", "*.dat")])
         else:
@@ -348,7 +348,7 @@ class PlanWin(object):
     def seat_cluster(self, x_pos, y_pos, col_list) -> list[StudentSeat]:
         # the col_list is to avoid unnecesary overhead by calling seats_columnwise() repeatedly
         focus = self.seat_at(x_pos, y_pos)
-        print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
+        # print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
         # search horizontally first and for each horizontal neighbour find its vertical neighbours
@@ -361,13 +361,13 @@ class PlanWin(object):
         # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
         v_cluster = list()
         for seat in cluster:
-            print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
+            # print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
             v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
             if len(v_neighbours) > 0:
                 v_cluster.extend(v_neighbours)
         cluster.extend(v_cluster)
 
-        print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
+        # print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
 
         return cluster
 
@@ -377,7 +377,7 @@ class PlanWin(object):
         while y_pos < TOTAL_SEATS_Y - 1:
             neighb = col_list[x_pos][y_pos + 1]
             if neighb.active:
-                print(f'v_n(): found {neighb.varname.get()}')
+                # print(f'v_n(): found {neighb.varname.get()}')
                 cluster.append(neighb)
                 y_pos += 1
             else:
@@ -387,7 +387,7 @@ class PlanWin(object):
     def horizontal_neighbours(self, x_pos, y_pos, col_list):
         cluster = list()
         while x_pos < TOTAL_SEATS_X - 1:
-            print(f'h_n(): x_pos:{x_pos} y_pos:{y_pos}')
+            # print(f'h_n(): x_pos:{x_pos} y_pos:{y_pos}')
             neighb = col_list[x_pos + 1][y_pos]
             if neighb.active:
                 cluster.append(neighb)
@@ -494,12 +494,12 @@ class PlanWin(object):
 
         for i in range(bounds[0]+1):
             column = list()
-            print(f'Column {i}')
+            # print(f'Column {i}')
             for seat in self.seats:
                 if seat.xpos == i:
-                    print(f'[{seat.name_get()}]', end=", ")
+                    # print(f'[{seat.name_get()}]', end=", ")
                     column.append(seat)
-            print("")
+            # print("")
             column.sort(key=lambda s: s.ypos)
             columns.append(column)
         return columns
@@ -882,8 +882,8 @@ class PlanWin(object):
                 print("defaulting to north")
 
             if orient not in ("n", "s"):
-                print(f"Orientation data is corrput: orient={orient}")
-                print("defaulting to north")
+                # print(f"Orientation data is corrput: orient={orient}")
+                # print("defaulting to north")
                 if self.orientationvar.get() == "s":
                     self.northbutton.invoke()
 
@@ -979,7 +979,7 @@ class PlanWin(object):
         if ortn == 'n':
             ws.merge_range('B1:' + xmax + '1', 'Tavla', headingformat)
         else:
-            # print('ymax is', ymax)
+            # # print('ymax is', ymax)
             ymax = str(int(ymax) + 4)
             ws.merge_range('B' + ymax + ':' + xmax + ymax, 'Tavla', headingformat)
 
