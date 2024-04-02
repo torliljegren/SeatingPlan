@@ -135,3 +135,4 @@ dmypy.json
 /.idea/SeatingPlan.iml
 /test.dat
 /.idea/vcs.xml
+/.idea/workspace.xml
