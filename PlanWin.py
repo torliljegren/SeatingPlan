@@ -451,6 +451,7 @@ class PlanWin(object):
             for seat in cluster:
                 seat.name_set(names[name_nr])
                 name_nr += 1
+                # stop placing names when the namelist is depleted or the active seats are depleted
                 if name_nr >= len(names) or name_nr >= n_active:
                     return
 
