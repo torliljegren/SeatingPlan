@@ -398,7 +398,7 @@ class PlanWin(object):
     def get_seat_clusters(self):
         active_seats_cols = self.active_seats_columnwise()
         all_seats_cols = self.seats_columnwise()
-        remaining_names = list(self.name_tuple())
+        remaining_names = list(set(self.name_tuple()))
         remaining_names.sort()
         clusters = list()
 
