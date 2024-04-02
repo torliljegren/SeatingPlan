@@ -16,6 +16,7 @@ from threading import Thread
 # import Constants
 from Constants import *
 from ManualPlaceWin import *
+from TtkTextArea import TtkTextArea
 from tktooltip import ToolTip
 
 if OP_SYS == 'linux':
@@ -29,6 +30,7 @@ from xlsxwriter import *
 class PlanWin(object):
 
     def __init__(self, prev_files: list[str] = None):
+        print(f'TCL version: {tkinter.Tcl().eval('info patchlevel')}')
         self.editclicks = 0
         self.seats: list[StudentSeat] = []
         self.filepath = ""
@@ -175,9 +177,10 @@ class PlanWin(object):
 
         # TODO: change below widget to my own per here:
         # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
-        self.textarea = ScrolledText(self.nameframe, name='textarea')
+        # self.textarea = ScrolledText(self.nameframe, name='textarea')
+        self.textarea = TtkTextArea(self.nameframe, name='textarea')
         self.textarea.pack(expand=True, side=TOP, fill='both')
-        self.textarea.insert(1.0, 'Högerklicka för att klistra in.')
+        self.textarea.insert(1.0, 'Högerklicka här för att klistra in.')
 
         if prev_files:
             self.prev_files = prev_files
@@ -195,8 +198,10 @@ class PlanWin(object):
         self.root.bind('<Escape>', self.search_on_leave)
         self.root.bind_all('<KeyPress>', self.keypress)
 
-        self.textarea.bind('<Button-2>', self.cmd_paste)
-        self.textarea.bind('<Button-3>', self.cmd_paste)
+        self.textarea.text.bind('<Button-1>', self.textbox_click_event)
+        self.textarea.text.bind('<Button-2>', self.cmd_paste)
+        self.textarea.text.bind('<Button-3>', self.cmd_paste)
+        self.textarea.text.bind('<Control-v>', self.cmd_paste)
 
         self.setup_grid()
 
@@ -441,6 +446,7 @@ class PlanWin(object):
                 seatnr += 1
 
     def cmd_sort_columnwise_cluster(self):
+        self.cmd_sort()
         names = list(self.name_tuple())
         names.sort()
         n_active = self.num_active()
@@ -850,6 +856,14 @@ class PlanWin(object):
             if filepath.split("/")[-1] == sel and sel and sel != "\n":
                 self.load_data(filepath)
                 self.root.title(filepath.split('/')[-1])
+
+    def textbox_click_event(self, e):
+        namelist = self.name_tuple()
+        # use the fact that the initial text "Högerklicka för att..." isnt a proper name and gives a 0 length name tuple
+        if len(namelist) == 0:
+            self.textarea.delete('1.0', tkinter.END)
+        else:
+            self.textarea.focus_set()
 
     def remove_selected_from_combobox(self):
         self.prev_files.remove(self.filepath)
