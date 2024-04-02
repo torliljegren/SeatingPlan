@@ -357,10 +357,14 @@ class PlanWin(object):
         if len(h_neighbours) > 0:
             cluster.extend(h_neighbours)
 
+
+        v_cluster = list()
         for seat in cluster:
+            print(f'Calling v_n() with x:{x_pos}, y:{y_pos}')
             v_neighbours = self.vertical_neighbours(x_pos, y_pos, col_list, name_list)
             if len(v_neighbours) > 0:
-                cluster.extend(v_neighbours)
+                v_cluster.extend(v_neighbours)
+        cluster.extend(v_cluster)
 
         print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
 
@@ -370,6 +374,7 @@ class PlanWin(object):
     def vertical_neighbours(self, x_pos, y_pos, col_list, name_list):
         cluster = list()
         while y_pos < TOTAL_SEATS_Y - 1:
+            print(f'v_n(): x_pos:{x_pos} y_pos:{y_pos}')
             neighb = col_list[x_pos][y_pos + 1]
             if neighb.active and neighb.name_get() in name_list:
                 cluster.append(neighb)
@@ -381,6 +386,7 @@ class PlanWin(object):
     def horizontal_neighbours(self, x_pos, y_pos, col_list, name_list):
         cluster = list()
         while x_pos < TOTAL_SEATS_X - 1:
+            print(f'h_n(): x_pos:{x_pos} y_pos:{y_pos}')
             neighb = col_list[x_pos + 1][y_pos]
             if neighb.active and neighb.name_get() in name_list:
                 cluster.append(neighb)
@@ -465,7 +471,7 @@ class PlanWin(object):
         return columns
 
     def seats_columnwise(self):
-        bounds = self.seat_bounds()
+        bounds = (TOTAL_SEATS_X - 1, TOTAL_SEATS_Y - 1)
 
         # make a list of lists with seats row in each column. It will be unordered
         # [
@@ -480,10 +486,12 @@ class PlanWin(object):
 
         for i in range(bounds[0]+1):
             column = list()
+            print(f'Column {i}')
             for seat in self.seats:
                 if seat.xpos == i:
-                    print(f'[{seat.name_get()}]', end=",")
+                    print(f'[{seat.name_get()}]', end=", ")
                     column.append(seat)
+            print("")
             column.sort(key=lambda s: s.ypos)
             columns.append(column)
         return columns
