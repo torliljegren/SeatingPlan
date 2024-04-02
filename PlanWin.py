@@ -345,7 +345,7 @@ class PlanWin(object):
 
 
     # Finds clustered active seats near seat at x_pos, y_pos
-    def seat_cluster(self, x_pos, y_pos, col_list, name_list) -> list[StudentSeat]:
+    def seat_cluster(self, x_pos, y_pos, col_list) -> list[StudentSeat]:
         # the col_list is to avoid unnecesary overhead by calling seats_columnwise() repeatedly
         focus = self.seat_at(x_pos, y_pos)
         print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
@@ -353,15 +353,16 @@ class PlanWin(object):
 
         # search horizontally first and for each horizontal neighbour find its vertical neighbours
         # it is sufficient to find only right and downwards neighbours
-        h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list, name_list)
+        h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list)
         if len(h_neighbours) > 0:
             cluster.extend(h_neighbours)
+        # now cluster contains all horizontal neighbours from x_pos, y_pos
 
-
+        # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
         v_cluster = list()
         for seat in cluster:
-            print(f'Calling v_n() with x:{x_pos}, y:{y_pos}')
-            v_neighbours = self.vertical_neighbours(x_pos, y_pos, col_list, name_list)
+            print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
+            v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
             if len(v_neighbours) > 0:
                 v_cluster.extend(v_neighbours)
         cluster.extend(v_cluster)
@@ -371,24 +372,24 @@ class PlanWin(object):
         return cluster
 
 
-    def vertical_neighbours(self, x_pos, y_pos, col_list, name_list):
+    def vertical_neighbours(self, x_pos, y_pos, col_list):
         cluster = list()
         while y_pos < TOTAL_SEATS_Y - 1:
-            print(f'v_n(): x_pos:{x_pos} y_pos:{y_pos}')
             neighb = col_list[x_pos][y_pos + 1]
-            if neighb.active and neighb.name_get() in name_list:
+            if neighb.active:
+                print(f'v_n(): found {neighb.varname.get()}')
                 cluster.append(neighb)
                 y_pos += 1
             else:
                 break
         return cluster
 
-    def horizontal_neighbours(self, x_pos, y_pos, col_list, name_list):
+    def horizontal_neighbours(self, x_pos, y_pos, col_list):
         cluster = list()
         while x_pos < TOTAL_SEATS_X - 1:
             print(f'h_n(): x_pos:{x_pos} y_pos:{y_pos}')
             neighb = col_list[x_pos + 1][y_pos]
-            if neighb.active and neighb.name_get() in name_list:
+            if neighb.active:
                 cluster.append(neighb)
                 x_pos += 1
             else:
@@ -397,6 +398,7 @@ class PlanWin(object):
 
     def get_seat_clusters(self):
         active_seats_cols = self.active_seats_columnwise()
+        active_seats = self.active_seats()
         all_seats_cols = self.seats_columnwise()
         remaining_names = list(set(self.name_tuple()))
         remaining_names.sort()
@@ -404,11 +406,14 @@ class PlanWin(object):
 
         for col in active_seats_cols:
             for seat in col:
-                if seat.name_get() in remaining_names:
-                    cluster = self.seat_cluster(seat.xpos, seat.ypos, all_seats_cols, remaining_names)
+                if seat in active_seats:
+                    cluster = self.seat_cluster(seat.xpos, seat.ypos, all_seats_cols)
                     clusters.append(cluster)
                     for c_seat in cluster:
-                        remaining_names.remove(c_seat.name_get())
+                        try:
+                            active_seats.remove(c_seat)
+                        except:
+                            print(f'ERROR: {c_seat.name_get()} could not be found, proceeding...')
 
         return clusters
 
@@ -438,13 +443,16 @@ class PlanWin(object):
     def cmd_sort_columnwise_cluster(self):
         names = list(self.name_tuple())
         names.sort()
-
+        n_active = self.num_active()
         clusters = self.get_seat_clusters()
+        self.cmd_unplace()
         name_nr = 0
         for cluster in clusters:
             for seat in cluster:
                 seat.name_set(names[name_nr])
                 name_nr += 1
+                if name_nr >= len(names) or name_nr >= n_active:
+                    return
 
     def active_seats_columnwise(self):
         active_seats = self.active_seats()
