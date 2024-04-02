@@ -444,6 +444,8 @@ class PlanWin(object):
         names = list(self.name_tuple())
         names.sort()
         n_active = self.num_active()
+        if n_active == 0 or not names:
+            return
         clusters = self.get_seat_clusters()
         self.cmd_unplace()
         name_nr = 0
