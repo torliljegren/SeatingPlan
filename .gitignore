@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+
 # C extensions
 *.so
 
@@ -127,7 +128,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/.idea/.gitignore
 /.idea/misc.xml
 /.idea/modules.xml
 /.idea/inspectionProfiles/profiles_settings.xml
@@ -135,4 +135,3 @@ dmypy.json
 /.idea/SeatingPlan.iml
 /test.dat
 /.idea/vcs.xml
-/.idea/workspace.xml
