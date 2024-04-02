@@ -3,7 +3,7 @@
 import Constants
 import platform
 from tkinter import StringVar, BooleanVar
-import PlanWin
+# import PlanWin
 
 # import the right kind of button depending on OS
 if Constants.OP_SYS == 'darwin':
@@ -24,7 +24,7 @@ class StudentSeat(Button):
         self.ypos = ypos
         self.editvar = editvar
         self.callback = callback
-        self.win: PlanWin.PlanWin = win
+        self.win = win
         self.has_swapped = False
 
         self.bind('<Enter>', lambda e: StudentSeat.on_enter(e, self))
@@ -88,5 +88,6 @@ class StudentSeat(Button):
     def on_leave(event, seat):
         color = Constants.ACTIVE_COLOR if seat.active else Constants.PASSIVE_COLOR
         seat.configure(activebackground=color)#, borderwidth=0)
-    # def __str__(self) -> str:
-    #    return "Seat "+str(self.xpos)+", "+str(self.ypos)
+
+    #def __str__(self) -> str:
+    #    return self.name_get() + ", " + str(self.xpos)+", "+str(self.ypos)
