@@ -30,7 +30,8 @@ from xlsxwriter import *
 class PlanWin(object):
 
     def __init__(self, prev_files: list[str] = None):
-        print(f'TCL version: {tkinter.Tcl().eval('info patchlevel')}')
+        tcl_v = tkinter.Tcl().eval('info patchlevel')
+        print(f'TCL version: {tcl_v}')
         self.editclicks = 0
         self.seats: list[StudentSeat] = []
         self.filepath = ""
@@ -371,6 +372,15 @@ class PlanWin(object):
             if len(v_neighbours) > 0:
                 v_cluster.extend(v_neighbours)
         cluster.extend(v_cluster)
+
+        # search for all horizontal neighbours of the vertical neighbours and append them to the cluster
+        for seat in v_cluster:
+            h_neighbours = self.horizontal_neighbours(seat.xpos, seat.ypos, col_list)
+            for h_seat in h_neighbours:
+                if h_seat in cluster:
+                    h_neighbours.remove(h_seat)
+            if len(h_neighbours) > 0:
+                cluster.extend(h_neighbours)
 
         # print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
 
