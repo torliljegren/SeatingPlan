@@ -357,30 +357,30 @@ class PlanWin(object):
         # print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
-        # search horizontally first and for each horizontal neighbour find its vertical neighbours
+        # search vertically first and for each vertical neighbour find its horizontal neighbours
         # it is sufficient to find only right neighbours
-        h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list)
-        if len(h_neighbours) > 0:
-            cluster.extend(h_neighbours)
-        # now cluster contains all horizontal neighbours from x_pos, y_pos
-
-        # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
-        v_cluster = list()
-        for seat in cluster:
-            # print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
-            v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
-            if len(v_neighbours) > 0:
-                v_cluster.extend(v_neighbours)
-        cluster.extend(v_cluster)
+        v_neighbours = self.vertical_neighbours(x_pos, y_pos, col_list)
+        if len(v_neighbours) > 0:
+            cluster.extend(v_neighbours)
+        # now cluster contains all vertical neighbours from x_pos, y_pos
 
         # search for all horizontal neighbours of the vertical neighbours and append them to the cluster
-        for seat in v_cluster:
+        h_cluster = list()
+        for seat in cluster:
+            # print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
             h_neighbours = self.horizontal_neighbours(seat.xpos, seat.ypos, col_list)
-            for h_seat in h_neighbours:
-                if h_seat in cluster:
-                    h_neighbours.remove(h_seat)
             if len(h_neighbours) > 0:
-                cluster.extend(h_neighbours)
+                h_cluster.extend(h_neighbours)
+        cluster.extend(h_cluster)
+
+        # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
+        for seat in h_cluster:
+            v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
+            for v_seat in v_neighbours:
+                if v_seat in cluster:
+                    v_neighbours.remove(v_seat)
+            if len(v_neighbours) > 0:
+                cluster.extend(v_neighbours)
 
         # search for all vertical neighbours again of and append them to the cluster
         # for seat in cluster:
