@@ -67,6 +67,9 @@ class StudentSeat(Button):
     def name_set(self, name: str):
         self.varname.set(name)
 
+    def seat_coords(self):
+        return self.xpos, self.ypos
+
     def restore_color(self):
         if self.active:
             self.configure(bg=Constants.ACTIVE_COLOR)
