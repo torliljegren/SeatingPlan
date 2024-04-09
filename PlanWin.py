@@ -437,14 +437,13 @@ class PlanWin(object):
         all_seats_cols = self.seats_columnwise()
         clusters = list()
 
-        print('get_seat_cluster():')
         for col in active_seats_cols:
             for seat in col:
                 if seat in active_seats:
                     cluster = self.seat_cluster(seat.xpos, seat.ypos, all_seats_cols)
                     clusters.append(cluster)
                     c_l = [s.seat_coords() for s in cluster]
-                    print(f'found cluster: {c_l}')
+                    # print(f'found cluster: {c_l}')
                     for c_seat in cluster:
                         try:
                             active_seats.remove(c_seat)
