@@ -176,8 +176,6 @@ class PlanWin(object):
         self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
 
-        # TODO: change below widget to my own per here:
-        # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
         # self.textarea = ScrolledText(self.nameframe, name='textarea')
         self.textarea = TtkTextArea(self.nameframe, name='textarea')
         self.textarea.pack(expand=True, side=TOP, fill='both')
@@ -476,9 +474,30 @@ class PlanWin(object):
                 seatnr += 1
 
     def cmd_sort_columnwise_cluster(self):
-        self.cmd_sort()
-        names = list(self.name_tuple())
+        names = list(self.name_tuple(allow_improper=True))
+        # dont place improper names first - pop them an add last
+        improper = list()
+        i = 0
+        for name in names:
+            if '.' in name:
+                print(f'name {name} contains .')
+                improper.append(names.pop(i)[1:])
+            i += 1
+        i = 0
+        # due to a bug somewhere in python the char '.' is not always recognized in the first loop, so run it again
+        for name in names:
+            if '.' in name:
+                print(f'name {name} contains .')
+                improper.append(names.pop(i)[1:])
+            i += 1
         names.sort()
+        improper.sort()
+        names.extend(improper)
+        print(improper)
+        print(names)
+
+        self.fill_textarea(names)
+
         n_active = self.num_active()
         if n_active == 0 or not names:
             return
@@ -753,12 +772,13 @@ class PlanWin(object):
             return False
 
     # read the names from the textbox in the GUI and return them in a tuple
-    def name_tuple(self) -> tuple:
+    def name_tuple(self, allow_improper=False) -> tuple:
         namesstr = self.textarea.get(1.0, END).strip()
         tempnames = str.split(namesstr, "\n")
+
         clean_names: list[str] = [name for name in tempnames if self.is_proper_name(name)]
 
-        return tuple(clean_names)
+        return (name for name in tempnames if name) if allow_improper else tuple(clean_names)
 
     def place_names(self, names: tuple):
         act_sts = self.active_seats()
@@ -833,6 +853,15 @@ class PlanWin(object):
                     seat.activate()
                 else:
                     seat.deactivate()
+
+    def fill_textarea(self, stulist):
+        # replace textarea with loaded students
+        stustring = ""
+        for stu in stulist:
+            stustring += stu + "\n"
+
+        self.textarea.delete(1.0, tkinter.END)
+        self.textarea.insert(1.0, stustring)
 
     def write_data(self, filepath: str):
         # prepare strings from student list
