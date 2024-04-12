@@ -905,6 +905,7 @@ class PlanWin(object):
         filenames = []
         for filepath in self.prev_files:
             filenames.append(filepath.split("/")[-1])
+        filenames.sort()
 
         self.previouscombobox['values'] = tuple(filenames)
         self.combovar.set(newpath.split("/")[-1])
