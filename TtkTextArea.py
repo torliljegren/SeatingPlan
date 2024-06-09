@@ -3,7 +3,7 @@ import tkinter.ttk as ttk
 
 class TtkTextArea(ttk.LabelFrame):
     def __init__(self, master, name=None):
-        self.lbl = ttk.Label(master=master, text='Ett namn per rad')
+        self.lbl = ttk.Label(master=master, text='Ett namn per rad. En punkt framför ett namn gör att det sorteras sist')
         super().__init__(master, name=name, labelwidget=self.lbl)
         self.text = tk.Text(self, wrap="none")
         self.vsb = ttk.Scrollbar(self, command=self.text.yview, orient="vertical")

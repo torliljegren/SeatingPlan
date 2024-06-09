@@ -30,7 +30,8 @@ from xlsxwriter import *
 class PlanWin(object):
 
     def __init__(self, prev_files: list[str] = None):
-        print(f'TCL version: {tkinter.Tcl().eval('info patchlevel')}')
+        tcl_v = tkinter.Tcl().eval('info patchlevel')
+        print(f'TCL version: {tcl_v}')
         self.editclicks = 0
         self.seats: list[StudentSeat] = []
         self.filepath = ""
@@ -175,8 +176,6 @@ class PlanWin(object):
         self.notebook.add(self.whiteboard_and_seatsframe, text='Placering')
         self.notebook.add(self.nameframe, text='Klasslista')
 
-        # TODO: change below widget to my own per here:
-        # https://stackoverflow.com/questions/64774411/is-there-a-ttk-equivalent-of-scrolledtext-widget-tkinter
         # self.textarea = ScrolledText(self.nameframe, name='textarea')
         self.textarea = TtkTextArea(self.nameframe, name='textarea')
         self.textarea.pack(expand=True, side=TOP, fill='both')
@@ -356,29 +355,47 @@ class PlanWin(object):
         # print(f'Searching around {focus.name_get()} col:{x_pos}, row:{y_pos}')
         cluster = [focus]
 
-        # search horizontally first and for each horizontal neighbour find its vertical neighbours
-        # it is sufficient to find only right and downwards neighbours
-        h_neighbours = self.horizontal_neighbours(x_pos, y_pos, col_list)
-        if len(h_neighbours) > 0:
-            cluster.extend(h_neighbours)
-        # now cluster contains all horizontal neighbours from x_pos, y_pos
+        # search vertically first and for each vertical neighbour find its horizontal neighbours
+        # it is sufficient to find only right neighbours
+        v_neighbours = self.vertical_neighbours(x_pos, y_pos, col_list)
+        if len(v_neighbours) > 0:
+            cluster.extend(v_neighbours)
+        # now cluster contains all vertical neighbours from x_pos, y_pos
 
-        # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
-        v_cluster = list()
+        # search for all horizontal neighbours of the vertical neighbours and append them to the cluster
+        h_cluster = list()
         for seat in cluster:
             # print(f'Calling v_n() with x:{seat.xpos}, y:{seat.ypos}')
-            v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
-            if len(v_neighbours) > 0:
-                v_cluster.extend(v_neighbours)
-        cluster.extend(v_cluster)
+            h_neighbours = self.horizontal_neighbours(seat.xpos, seat.ypos, col_list)
+            if len(h_neighbours) > 0:
+                h_cluster.extend(h_neighbours)
+        cluster.extend(h_cluster)
 
-        # print(f'Found a cluster of {len(cluster)} seats: {[s.varname.get() for s in cluster]}')
+        # search for all vertical neighbours of the horizontal neighbours and append them to the cluster
+        for seat in h_cluster:
+            v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
+            for v_seat in v_neighbours:
+                if v_seat in cluster:
+                    v_neighbours.remove(v_seat)
+            if len(v_neighbours) > 0:
+                cluster.extend(v_neighbours)
+
+        # search for all vertical neighbours again of and append them to the cluster
+        # for seat in cluster:
+        #     v_neighbours = self.vertical_neighbours(seat.xpos, seat.ypos, col_list)
+        #     for v_seat in v_neighbours:
+        #         if v_seat in cluster:
+        #             v_neighbours.remove(v_seat)
+        #     if len(v_neighbours) > 0:
+        #         cluster.extend(v_neighbours)
 
         return cluster
 
 
     def vertical_neighbours(self, x_pos, y_pos, col_list):
         cluster = list()
+        y_0 = y_pos
+        # search downwards
         while y_pos < TOTAL_SEATS_Y - 1:
             neighb = col_list[x_pos][y_pos + 1]
             if neighb.active:
@@ -387,6 +404,17 @@ class PlanWin(object):
                 y_pos += 1
             else:
                 break
+
+        # search upwards
+        y_pos = y_0
+        while y_pos > 0:
+            neighb = col_list[x_pos][y_pos - 1]
+            if neighb.active and neighb not in cluster:
+                cluster.append(neighb)
+                y_pos -= 1
+            else:
+                break
+
         return cluster
 
     def horizontal_neighbours(self, x_pos, y_pos, col_list):
@@ -405,8 +433,6 @@ class PlanWin(object):
         active_seats_cols = self.active_seats_columnwise()
         active_seats = self.active_seats()
         all_seats_cols = self.seats_columnwise()
-        remaining_names = list(set(self.name_tuple()))
-        remaining_names.sort()
         clusters = list()
 
         for col in active_seats_cols:
@@ -414,6 +440,8 @@ class PlanWin(object):
                 if seat in active_seats:
                     cluster = self.seat_cluster(seat.xpos, seat.ypos, all_seats_cols)
                     clusters.append(cluster)
+                    c_l = [s.seat_coords() for s in cluster]
+                    # print(f'found cluster: {c_l}')
                     for c_seat in cluster:
                         try:
                             active_seats.remove(c_seat)
@@ -446,9 +474,30 @@ class PlanWin(object):
                 seatnr += 1
 
     def cmd_sort_columnwise_cluster(self):
-        self.cmd_sort()
-        names = list(self.name_tuple())
+        names = list(self.name_tuple(allow_improper=True))
+        # dont place improper names first - pop them an add last
+        improper = list()
+        i = 0
+        for name in names:
+            if '.' in name:
+                print(f'name {name} contains .')
+                improper.append(names.pop(i)[1:])
+            i += 1
+        i = 0
+        # due to a bug somewhere in python the char '.' is not always recognized in the first loop, so run it again
+        for name in names:
+            if '.' in name:
+                print(f'name {name} contains .')
+                improper.append(names.pop(i)[1:])
+            i += 1
         names.sort()
+        improper.sort()
+        names.extend(improper)
+        print(improper)
+        print(names)
+
+        self.fill_textarea(names)
+
         n_active = self.num_active()
         if n_active == 0 or not names:
             return
@@ -723,12 +772,13 @@ class PlanWin(object):
             return False
 
     # read the names from the textbox in the GUI and return them in a tuple
-    def name_tuple(self) -> tuple:
+    def name_tuple(self, allow_improper=False) -> tuple:
         namesstr = self.textarea.get(1.0, END).strip()
         tempnames = str.split(namesstr, "\n")
+
         clean_names: list[str] = [name for name in tempnames if self.is_proper_name(name)]
 
-        return tuple(clean_names)
+        return (name for name in tempnames if name) if allow_improper else tuple(clean_names)
 
     def place_names(self, names: tuple):
         act_sts = self.active_seats()
@@ -804,6 +854,15 @@ class PlanWin(object):
                 else:
                     seat.deactivate()
 
+    def fill_textarea(self, stulist):
+        # replace textarea with loaded students
+        stustring = ""
+        for stu in stulist:
+            stustring += stu + "\n"
+
+        self.textarea.delete(1.0, tkinter.END)
+        self.textarea.insert(1.0, stustring)
+
     def write_data(self, filepath: str):
         # prepare strings from student list
         students = self.textarea.get(1.0, tkinter.END).split("\n")
@@ -846,6 +905,7 @@ class PlanWin(object):
         filenames = []
         for filepath in self.prev_files:
             filenames.append(filepath.split("/")[-1])
+        filenames.sort()
 
         self.previouscombobox['values'] = tuple(filenames)
         self.combovar.set(newpath.split("/")[-1])
