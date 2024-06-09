@@ -9,12 +9,12 @@ import pyperclip
 # from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import asksaveasfilename, askopenfilename
-from tkinter.scrolledtext import ScrolledText
+# from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesnocancel
 from threading import Thread
 
 # import Constants
-from Constants import *
+# import Constants
 from ManualPlaceWin import *
 from TtkTextArea import TtkTextArea
 from tktooltip import ToolTip
@@ -236,7 +236,7 @@ class PlanWin(object):
             if seat.ypos > ymax and seat.active:
                 ymax = seat.ypos
         # # print("xmax ymax =", xmax, ymax)
-        return (xmax, ymax)
+        return xmax, ymax
 
     # Threading function for updating student count
     def periodic_stucount_update(self, window, upd, run):
